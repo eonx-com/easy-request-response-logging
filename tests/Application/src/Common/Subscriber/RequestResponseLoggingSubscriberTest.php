@@ -729,7 +729,7 @@ final class RequestResponseLoggingSubscriberTest extends AbstractApplicationTest
     {
         return \array_values(\array_filter(
             LogCollectorProcessor::getRecords(),
-            static fn (LogRecord $record): bool => $record->channel === BundleParam::LogChannel->value
+            static fn(LogRecord $record): bool => $record->channel === BundleParam::LogChannel->value
         ));
     }
 

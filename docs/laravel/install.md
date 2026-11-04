@@ -1,5 +1,5 @@
 ---eonx_docs---
-title: Laravel/Lumen
+title: Laravel
 weight: 2000
 is_section: true
 section_icon: fab fa-laravel
@@ -9,8 +9,6 @@ section_icon: fab fa-laravel
 
 `EasyRequestIdServiceProvider` (with `EasyRandomServiceProvider`, which it depends on) and `EasyUtilsServiceProvider`
 are required. If one of them is not registered when the feature is enabled, the application boot fails.
-
-In a Laravel application:
 
 ```php
 // config/app.php
@@ -25,27 +23,8 @@ In a Laravel application:
 ],
 ```
 
-In a Lumen application:
-
-```php
-// bootstrap/app.php
-
-$app = new Laravel\Lumen\Application(\dirname(__DIR__));
-
-// Other actions...
-
-$app->register(\EonX\EasyRandom\Laravel\EasyRandomServiceProvider::class);
-$app->register(\EonX\EasyRequestId\Laravel\EasyRequestIdServiceProvider::class);
-$app->register(\EonX\EasyRequestResponseLogging\Laravel\EasyRequestResponseLoggingServiceProvider::class);
-$app->register(\EonX\EasyUtils\Laravel\EasyUtilsServiceProvider::class);
-```
-
-The service provider registers the `RequestResponseLoggingMiddleware` global terminable middleware:
-
-- Laravel: the middleware is prepended to the global middleware, so the logged duration covers the whole pipeline.
-- Lumen: the middleware is appended to the global middleware. Register `EasyRequestResponseLoggingServiceProvider`
-  before the other service providers which register global middleware, to include their post-processing in the
-  logged duration.
+The service provider prepends the `RequestResponseLoggingMiddleware` global terminable middleware to the global
+middleware, so the logged duration covers the whole pipeline.
 
 `duration_ms` is the time between the request start (`REQUEST_TIME_FLOAT` server parameter) and the moment the
 middleware gets the response, so it includes the application boot. The request start depends on the runtime: PHP-FPM
@@ -95,12 +74,6 @@ return [
 ];
 ```
 
-In a Lumen application, load the config file in `bootstrap/app.php`:
-
-```php
-$app->configure('easy-request-response-logging');
-```
-
 All logged data goes through the EasyUtils sensitive data sanitizer. It matches keys regardless of case, separators
 (space, `-` and `_`) and an `x` prefix, e.g. the `X-Api-Key` header and the `apiKey` field match the `api_key` key.
 Keep `easy-utils.sensitive_data.enabled` set to `true` and add your application specific keys to
@@ -115,11 +88,3 @@ Records are logged at `info` level to the `easy_request_response_logging` channe
 - With `EasyLoggingServiceProvider` registered, the logger is created by the EasyLogging `LoggerFactory`. Add the
   `EonX\EasyRequestResponseLogging\Bundle\Enum\BundleParam::LogChannel` channel to a handler config provider.
 - Without EasyLogging, the default `Psr\Log\LoggerInterface` of the application is used.
-
-<br>
-
-### Lumen with `Application::handle()`
-
-Lumen calls terminable middleware inside `Application::handle()`, before the response is returned. When the
-application is run with `handle()` instead of `run()` (for example, with Bref and EasyServerless), the logging is done
-before the response is sent to the client.

@@ -10,7 +10,7 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 #[AsEventListener(priority: 2048)]
 final class EarlyResponseListener
 {
-    public const HEADER = 'X-Early-Response';
+    public const string HEADER = 'X-Early-Response';
 
     public function __invoke(RequestEvent $event): void
     {

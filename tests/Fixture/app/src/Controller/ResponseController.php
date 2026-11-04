@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 final class ResponseController
 {
-    public const READ_BODY_AS_STREAM_HEADER = 'X-Read-Body-As-Stream';
+    public const string READ_BODY_AS_STREAM_HEADER = 'X-Read-Body-As-Stream';
 
     public function __invoke(Request $request): JsonResponse
     {

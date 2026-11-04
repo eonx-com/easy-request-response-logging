@@ -17,15 +17,15 @@ use UnexpectedValueException;
 
 final readonly class RequestResponseDataBuilder
 {
-    private const CARD_NUMBER_MIN_DIGITS = 12;
+    private const int CARD_NUMBER_MIN_DIGITS = 12;
 
-    private const FORM_CONTENT_TYPE = 'application/x-www-form-urlencoded';
+    private const string FORM_CONTENT_TYPE = 'application/x-www-form-urlencoded';
 
-    private const JSON_CONTENT_TYPE = 'application/json';
+    private const string JSON_CONTENT_TYPE = 'application/json';
 
-    private const JSON_CONTENT_TYPE_SUFFIX = '+json';
+    private const string JSON_CONTENT_TYPE_SUFFIX = '+json';
 
-    private const OMITTED_VALUE = '[omitted]';
+    private const string OMITTED_VALUE = '[omitted]';
 
     public function __construct(
         private SensitiveDataSanitizerInterface $sensitiveDataSanitizer,
@@ -34,8 +34,7 @@ final readonly class RequestResponseDataBuilder
         private bool $logResponseBody,
         private int $maxBodySize,
         private int $maxRawBodySize,
-    ) {
-    }
+    ) {}
 
     /**
      * @param array|null $routeParameters Null when no route matched the request
@@ -45,7 +44,7 @@ final readonly class RequestResponseDataBuilder
         [$body, $bodyOmitted, $bodyTruncated] = $this->prepareBody(
             $this->logRequestBody,
             $request->headers,
-            static fn (): string => $request->getContent()
+            static fn(): string => $request->getContent()
         );
         $sanitizedRouteParameters = $routeParameters === null ? null : $this->sanitizeEntries($routeParameters);
 
@@ -69,7 +68,7 @@ final readonly class RequestResponseDataBuilder
         [$body, $bodyOmitted, $bodyTruncated] = $this->prepareBody(
             $this->logResponseBody,
             $response->headers,
-            static fn (): ?string => $response->getContent() === false ? null : $response->getContent()
+            static fn(): ?string => $response->getContent() === false ? null : $response->getContent()
         );
 
         return new ResponseData(

@@ -18,8 +18,7 @@ final readonly class RequestResponseLogger
         private LoggerInterface $logger,
         private RequestResponseDataBuilder $requestResponseDataBuilder,
         private array $doNotLogPaths,
-    ) {
-    }
+    ) {}
 
     /**
      * @param array|null $routeParameters Null when no route matched the request

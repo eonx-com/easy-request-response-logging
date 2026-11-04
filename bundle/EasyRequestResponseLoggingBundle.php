@@ -12,8 +12,6 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 
 final class EasyRequestResponseLoggingBundle extends AbstractBundle
 {
-    private bool $useSymfonyMonologBundle = false;
-
     public function __construct()
     {
         $this->path = \realpath(__DIR__);
@@ -42,17 +40,6 @@ final class EasyRequestResponseLoggingBundle extends AbstractBundle
             ->set(ConfigParam::MaxRawBodySize->value, $config['max_raw_body_size']);
 
         $container->import('config/services.php');
-
-        if ($this->useSymfonyMonologBundle === false && $this->isBundleEnabled('EasyLoggingBundle', $builder)) {
-            $container->import('config/easy_logging.php');
-        }
-    }
-
-    public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
-    {
-        // Resolved here because extension configs are only available during the prepend phase: loadExtension()
-        // receives a temporary container without them. All prepend hooks run before any loadExtension() call
-        $this->useSymfonyMonologBundle = $this->shouldUseSymfonyMonologBundle($builder);
     }
 
     private function isBundleEnabled(string $bundleName, ContainerBuilder $builder): bool
@@ -61,19 +48,5 @@ final class EasyRequestResponseLoggingBundle extends AbstractBundle
         $bundles = $builder->getParameter('kernel.bundles');
 
         return isset($bundles[$bundleName]);
-    }
-
-    private function shouldUseSymfonyMonologBundle(ContainerBuilder $builder): bool
-    {
-        $enabled = false;
-
-        foreach ($builder->getExtensionConfig('easy_logging') as $config) {
-            if (\array_key_exists('use_symfony_monolog_bundle', $config)) {
-                $enabled = $config['use_symfony_monolog_bundle'];
-            }
-        }
-
-        return (bool)$builder->getParameterBag()
-            ->resolveValue($enabled);
     }
 }

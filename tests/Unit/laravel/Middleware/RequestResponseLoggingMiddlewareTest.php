@@ -6,18 +6,18 @@ namespace EonX\EasyRequestResponseLogging\Tests\Unit\Laravel\Middleware;
 use EonX\EasyRequestResponseLogging\Bundle\Enum\ConfigServiceId;
 use EonX\EasyRequestResponseLogging\Common\Logger\RequestResponseLogger;
 use EonX\EasyRequestResponseLogging\Laravel\Middleware\RequestResponseLoggingMiddleware;
-use EonX\EasyRequestResponseLogging\Tests\Unit\Laravel\AbstractLumenTestCase;
+use EonX\EasyRequestResponseLogging\Tests\Unit\Laravel\AbstractLaravelTestCase;
+use Illuminate\Foundation\Application;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
-use Laravel\Lumen\Application;
 use Monolog\LogRecord;
 use Psr\Log\AbstractLogger;
 use RuntimeException;
 use stdClass;
 use Stringable;
 
-final class RequestResponseLoggingMiddlewareTest extends AbstractLumenTestCase
+final class RequestResponseLoggingMiddlewareTest extends AbstractLaravelTestCase
 {
     public function testTerminateSucceeds(): void
     {
@@ -32,7 +32,7 @@ final class RequestResponseLoggingMiddlewareTest extends AbstractLumenTestCase
             content: '{"password":"some-password","name":"John"}'
         );
 
-        $response = $app->handle($request);
+        $response = $this->handle($app, $request);
 
         self::assertSame(200, $response->getStatusCode());
         $record = $this->getSingleRecord();
@@ -69,7 +69,7 @@ final class RequestResponseLoggingMiddlewareTest extends AbstractLumenTestCase
     {
         $app = $this->createApplicationWithRoutes();
 
-        $app->handle(Request::create('/ping'));
+        $this->handle($app, Request::create('/ping'));
 
         self::assertSame([], $this->logHandler->getRecords());
     }
@@ -77,14 +77,14 @@ final class RequestResponseLoggingMiddlewareTest extends AbstractLumenTestCase
     public function testTerminateSucceedsAndSwallowsLoggerFailure(): void
     {
         $app = $this->createApplicationWithRoutes();
-        $app->instance(ConfigServiceId::Logger->value, new class() extends AbstractLogger {
+        $app->instance(ConfigServiceId::Logger->value, new class extends AbstractLogger {
             public function log($level, string|Stringable $message, array $context = []): void
             {
                 throw new RuntimeException('Logger failure.');
             }
         });
 
-        $response = $app->handle(Request::create('/ping-free'));
+        $response = $this->handle($app, Request::create('/ping-free'));
 
         self::assertSame(200, $response->getStatusCode());
     }
@@ -99,7 +99,7 @@ final class RequestResponseLoggingMiddlewareTest extends AbstractLumenTestCase
             ]
         );
 
-        $app->handle($request);
+        $this->handle($app, $request);
 
         $responseContext = $this->getSingleRecord()
             ->context['response'];
@@ -111,7 +111,7 @@ final class RequestResponseLoggingMiddlewareTest extends AbstractLumenTestCase
     {
         $app = $this->createApplicationWithRoutes();
 
-        $app->handle(Request::create(uri: '/token/some%2Dtoken', method: 'POST'));
+        $this->handle($app, Request::create(uri: '/token/some%2Dtoken', method: 'POST'));
 
         $record = $this->getSingleRecord();
         $requestContext = $record->context['request'];
@@ -130,7 +130,7 @@ final class RequestResponseLoggingMiddlewareTest extends AbstractLumenTestCase
     {
         $app = $this->createApplicationWithRoutes();
 
-        $response = $app->handle(Request::create('/exception'));
+        $response = $this->handle($app, Request::create('/exception'));
 
         self::assertSame(500, $response->getStatusCode());
         $record = $this->getSingleRecord();
@@ -144,11 +144,11 @@ final class RequestResponseLoggingMiddlewareTest extends AbstractLumenTestCase
     {
         $app = $this->createApplication();
         $request = Request::create('/lookup/4111111111111111');
-        $route = (new Route('GET', '/lookup/{value}', []))->name('lookup');
+        $route = new Route('GET', '/lookup/{value}', [])->name('lookup');
         $route->bind($request);
         // Route model binding replaces the parameter, the original raw value must be logged instead
         $route->setParameter('value', new stdClass());
-        $request->setRouteResolver(static fn (): Route => $route);
+        $request->setRouteResolver(static fn(): Route => $route);
         $middleware = new RequestResponseLoggingMiddleware($app->make(RequestResponseLogger::class));
 
         $middleware->terminate($request, new JsonResponse([]));
@@ -173,7 +173,7 @@ final class RequestResponseLoggingMiddlewareTest extends AbstractLumenTestCase
         $request = Request::create('/ping-free');
         $request->server->remove('REQUEST_TIME_FLOAT');
 
-        $app->handle($request);
+        $this->handle($app, $request);
 
         $responseContext = $this->getSingleRecord()
             ->context['response'];
@@ -185,7 +185,7 @@ final class RequestResponseLoggingMiddlewareTest extends AbstractLumenTestCase
     {
         $app = $this->createApplicationWithRoutes();
 
-        $response = $app->handle(Request::create('/some/token=some-token'));
+        $response = $this->handle($app, Request::create('/some/token=some-token'));
 
         self::assertSame(404, $response->getStatusCode());
         $requestContext = $this->getSingleRecord()
@@ -200,7 +200,7 @@ final class RequestResponseLoggingMiddlewareTest extends AbstractLumenTestCase
     {
         $app = $this->createApplicationWithRoutes();
 
-        $app->handle(Request::create('/lookup/4111111111111111'));
+        $this->handle($app, Request::create('/lookup/4111111111111111'));
 
         $requestContext = $this->getSingleRecord()
             ->context['request'];
@@ -219,16 +219,15 @@ final class RequestResponseLoggingMiddlewareTest extends AbstractLumenTestCase
     private function createApplicationWithRoutes(): Application
     {
         $app = $this->createApplication();
-        // Lumen binds route closures to the router, so they cannot be static
-        $responder = fn (): JsonResponse => new JsonResponse(['password' => 'some-password']);
-        $app->router->post('/token/{token}', [
-            'as' => 'token',
-            $responder,
-        ]);
-        $app->router->get('/lookup/{value}', $responder);
-        $app->router->get('/ping', $responder);
-        $app->router->get('/ping-free', $responder);
-        $app->router->get('/exception', function (): never {
+        $responder = static fn(): JsonResponse => new JsonResponse(['password' => 'some-password']);
+        /** @var \Illuminate\Routing\Router $router */
+        $router = $app->make('router');
+        $router->post('/token/{token}', $responder)
+            ->name('token');
+        $router->get('/lookup/{value}', $responder);
+        $router->get('/ping', $responder);
+        $router->get('/ping-free', $responder);
+        $router->get('/exception', static function (): never {
             throw new RuntimeException('Some exception.');
         });
 

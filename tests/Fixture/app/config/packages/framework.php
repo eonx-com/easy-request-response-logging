@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use Symfony\Config\FrameworkConfig;
-
-return static function (FrameworkConfig $frameworkConfig): void {
-    $frameworkConfig
-        ->test(true);
+return static function (ContainerConfigurator $containerConfigurator): void {
+    $containerConfigurator->extension('framework', [
+        'test' => true,
+        'validation' => true,
+    ]);
 };

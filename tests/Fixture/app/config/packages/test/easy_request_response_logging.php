@@ -3,11 +3,10 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use Symfony\Config\EasyRequestResponseLoggingConfig;
-
-return static function (EasyRequestResponseLoggingConfig $easyRequestResponseLoggingConfig): void {
-    $easyRequestResponseLoggingConfig
-        ->enabled(true)
-        ->maxBodySize(1024)
-        ->maxRawBodySize(4096);
+return static function (ContainerConfigurator $containerConfigurator): void {
+    $containerConfigurator->extension('easy_request_response_logging', [
+        'enabled' => true,
+        'max_body_size' => 1024,
+        'max_raw_body_size' => 4096,
+    ]);
 };

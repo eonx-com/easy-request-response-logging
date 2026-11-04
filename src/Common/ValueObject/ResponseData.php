@@ -12,8 +12,7 @@ final readonly class ResponseData
         private bool $bodyOmitted,
         private bool $bodyTruncated,
         private ?float $durationMs,
-    ) {
-    }
+    ) {}
 
     public function getBody(): ?string
     {

@@ -10,7 +10,7 @@ use RuntimeException;
 #[AsMonologProcessor]
 final class FailingProcessor
 {
-    public const HEADER = 'X-Failing-Logger';
+    public const string HEADER = 'X-Failing-Logger';
 
     public function __invoke(LogRecord $record): LogRecord
     {

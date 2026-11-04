@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use Symfony\Config\EasyRequestResponseLoggingConfig;
-
-return static function (EasyRequestResponseLoggingConfig $easyRequestResponseLoggingConfig): void {
-    $easyRequestResponseLoggingConfig->enabled(true);
+return static function (ContainerConfigurator $containerConfigurator): void {
+    $containerConfigurator->extension('easy_request_response_logging', [
+        'enabled' => true,
+    ]);
 };

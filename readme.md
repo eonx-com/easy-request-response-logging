@@ -7,8 +7,8 @@ Logs every incoming HTTP request and its response (method, path, query, headers,
 request/correlation IDs) to a dedicated `easy_request_response_logging` log channel. All logged data is sanitized
 with the EasyUtils sensitive data sanitizer. The feature is disabled by default.
 
-It works with Symfony and Laravel/Lumen. The record is written after the response is sent (the `kernel.terminate`
-event in Symfony, a terminable middleware in Laravel/Lumen), so it works the same way with PHP-FPM, Swoole and
+It works with Symfony and Laravel. The record is written after the response is sent (the `kernel.terminate`
+event in Symfony, a terminable middleware in Laravel), so it works the same way with PHP-FPM, Swoole and
 serverless (Bref).
 
 ### Require package (Composer)
@@ -21,9 +21,8 @@ $ composer require eonx-com/easy-request-response-logging
 
 ### Integration into a project
 
-The steps below show a Symfony project that uses EasyLogging `LoggerFactory` for its log channels.
-All configuration options are listed in [Symfony install docs][2]. For Laravel/Lumen, see [Laravel/Lumen install
-docs][3].
+The steps below show a Symfony project. All configuration options are listed in [Symfony install docs][2]. For
+Laravel, see [Laravel install docs][3].
 
 #### 1. Register bundles
 
@@ -89,36 +88,7 @@ To enable the feature only in some environments, put this file in `config/packag
 Records are logged at `info` level to the `easy_request_response_logging` channel. Make sure a handler accepts this
 channel and this level, otherwise nothing is written.
 
-With EasyLogging `LoggerFactory`, add the channel to a handler config provider:
-
-```php
-// src/Infrastructure/EasyLogging/ConfigProvider/ApplicationHandlerConfigProvider.php
-
-use EonX\EasyLogging\Config\HandlerConfig;
-use EonX\EasyLogging\Formatter\JsonFormatter;
-use EonX\EasyLogging\Provider\HandlerConfigProviderInterface;
-use EonX\EasyRequestResponseLogging\Bundle\Enum\BundleParam as EasyRequestResponseLoggingBundleParam;
-use Monolog\Handler\StreamHandler;
-use Psr\Log\LogLevel;
-
-final class ApplicationHandlerConfigProvider implements HandlerConfigProviderInterface
-{
-    public function handlers(): iterable
-    {
-        $appHandler = new StreamHandler('php://stdout', LogLevel::DEBUG);
-        $appHandler->setFormatter(new JsonFormatter());
-        $appHandlerConfig = new HandlerConfig($appHandler);
-        $appHandlerConfig->channels([
-            'app',
-            EasyRequestResponseLoggingBundleParam::LogChannel->value,
-        ]);
-
-        yield $appHandlerConfig;
-    }
-}
-```
-
-With `easy_logging.use_symfony_monolog_bundle` enabled, configure a MonologBundle handler instead:
+Configure a MonologBundle handler for this channel:
 
 ```php
 // config/packages/monolog.php

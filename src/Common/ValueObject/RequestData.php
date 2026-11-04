@@ -17,8 +17,7 @@ final readonly class RequestData
         private bool $bodyTruncated,
         private ?string $requestId,
         private ?string $correlationId,
-    ) {
-    }
+    ) {}
 
     public function getBody(): ?string
     {

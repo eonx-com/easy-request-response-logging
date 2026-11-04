@@ -15,7 +15,6 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Foundation\Http\Kernel as FoundationHttpKernel;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Lumen\Application as LumenApplication;
 use LogicException;
 use Psr\Log\LoggerInterface;
 
@@ -47,7 +46,7 @@ final class EasyRequestResponseLoggingServiceProvider extends ServiceProvider
             );
         }
 
-        // Laravel: prepended to be the outermost global middleware, so the duration covers the whole pipeline
+        // Prepended to be the outermost global middleware, so the duration covers the whole pipeline
         if ($this->app->bound(HttpKernel::class)) {
             $kernel = $this->app->make(HttpKernel::class);
 
@@ -82,7 +81,7 @@ final class EasyRequestResponseLoggingServiceProvider extends ServiceProvider
 
         $this->app->singleton(
             RequestResponseDataBuilder::class,
-            static fn (Container $app): RequestResponseDataBuilder => new RequestResponseDataBuilder(
+            static fn(Container $app): RequestResponseDataBuilder => new RequestResponseDataBuilder(
                 sensitiveDataSanitizer: $app->make(SensitiveDataSanitizerInterface::class),
                 requestIdProvider: $app->make(RequestIdProviderInterface::class),
                 logRequestBody: (bool)\config('easy-request-response-logging.log_request_body', true),
@@ -94,7 +93,7 @@ final class EasyRequestResponseLoggingServiceProvider extends ServiceProvider
 
         $this->app->singleton(
             RequestResponseLogger::class,
-            static fn (Container $app): RequestResponseLogger => new RequestResponseLogger(
+            static fn(Container $app): RequestResponseLogger => new RequestResponseLogger(
                 logger: $app->make(ConfigServiceId::Logger->value),
                 requestResponseDataBuilder: $app->make(RequestResponseDataBuilder::class),
                 doNotLogPaths: (array)\config('easy-request-response-logging.do_not_log_paths', [])
@@ -102,12 +101,6 @@ final class EasyRequestResponseLoggingServiceProvider extends ServiceProvider
         );
 
         $this->app->singleton(RequestResponseLoggingMiddleware::class);
-
-        if ($this->app instanceof LumenApplication) {
-            $this->app->middleware([
-                RequestResponseLoggingMiddleware::class,
-            ]);
-        }
     }
 
     private function isEnabled(): bool

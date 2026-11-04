@@ -11,12 +11,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 final readonly class RequestResponseLoggingMiddleware
 {
-    private const DURATION_MS_ATTRIBUTE = '_easy_request_response_logging_duration_ms';
+    private const string DURATION_MS_ATTRIBUTE = '_easy_request_response_logging_duration_ms';
 
     public function __construct(
         private RequestResponseLogger $requestResponseLogger,
-    ) {
-    }
+    ) {}
 
     public function handle(Request $request, Closure $next): mixed
     {
@@ -26,7 +25,6 @@ final readonly class RequestResponseLoggingMiddleware
             // Set per request by PHP-FPM, Bref and OpenSwoole, so it also covers the application boot
             $startedAt = $request->server->get('REQUEST_TIME_FLOAT');
 
-            // Set also when an exception is thrown, as Lumen renders it outside the middleware pipeline
             if (\is_float($startedAt)) {
                 $request->attributes->set(
                     self::DURATION_MS_ATTRIBUTE,
@@ -55,27 +53,11 @@ final readonly class RequestResponseLoggingMiddleware
      */
     private function resolveRoute(Request $request): array
     {
-        /** @var \Illuminate\Routing\Route|array|object|string|null $route Lumen request returns an array */
         $route = $request->route();
 
-        // Laravel: original parameters are the raw path values, before route model binding
+        // Original parameters are the raw path values, before route model binding
         if ($route instanceof Route) {
             return [$route->getName(), $route->originalParameters()];
-        }
-
-        // Lumen: [status, action, parameters]
-        if (\is_array($route)) {
-            $name = $route[1]['as'] ?? null;
-            $parameters = \is_array($route[2] ?? null) ? $route[2] : [];
-
-            // Unlike Laravel, Lumen keeps parameters percent-encoded, while the logged path is decoded
-            foreach ($parameters as $key => $value) {
-                if (\is_string($value)) {
-                    $parameters[$key] = \rawurldecode($value);
-                }
-            }
-
-            return [\is_string($name) ? $name : null, $parameters];
         }
 
         return [null, null];

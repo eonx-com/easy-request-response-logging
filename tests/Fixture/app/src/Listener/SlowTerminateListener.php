@@ -9,7 +9,7 @@ use Symfony\Component\HttpKernel\Event\TerminateEvent;
 #[AsEventListener]
 final class SlowTerminateListener
 {
-    public const HEADER = 'X-Slow-Terminate';
+    public const string HEADER = 'X-Slow-Terminate';
 
     public function __invoke(TerminateEvent $event): void
     {

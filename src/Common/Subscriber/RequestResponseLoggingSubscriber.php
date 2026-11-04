@@ -10,12 +10,11 @@ use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
 final readonly class RequestResponseLoggingSubscriber implements EventSubscriberInterface
 {
-    private const DURATION_MS_ATTRIBUTE = '_easy_request_response_logging_duration_ms';
+    private const string DURATION_MS_ATTRIBUTE = '_easy_request_response_logging_duration_ms';
 
     public function __construct(
         private RequestResponseLogger $requestResponseLogger,
-    ) {
-    }
+    ) {}
 
     /**
      * @return array<string, array{0: string, 1: int}>

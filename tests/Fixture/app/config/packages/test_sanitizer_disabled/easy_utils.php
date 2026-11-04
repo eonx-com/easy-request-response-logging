@@ -3,9 +3,8 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use Symfony\Config\EasyUtilsConfig;
-
-return static function (EasyUtilsConfig $easyUtilsConfig): void {
-    $easyUtilsConfig->sensitiveDataSanitizer()
-        ->enabled(false);
+return static function (ContainerConfigurator $containerConfigurator): void {
+    $containerConfigurator->extension('easy_utils', [
+        'sensitive_data_sanitizer' => false,
+    ]);
 };

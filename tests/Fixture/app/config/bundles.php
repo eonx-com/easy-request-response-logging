@@ -1,7 +1,6 @@
 <?php
 declare(strict_types=1);
 
-use EonX\EasyLogging\Bundle\EasyLoggingBundle;
 use EonX\EasyRandom\Bundle\EasyRandomBundle;
 use EonX\EasyRequestId\Bundle\EasyRequestIdBundle;
 use EonX\EasyRequestResponseLogging\Bundle\EasyRequestResponseLoggingBundle;
@@ -28,8 +27,5 @@ return [
     ],
     EasyRequestResponseLoggingBundle::class => [
         'all' => true,
-    ],
-    EasyLoggingBundle::class => [
-        'test_easy_logging' => true,
     ],
 ];

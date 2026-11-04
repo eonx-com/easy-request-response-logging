@@ -15,7 +15,7 @@ use EonX\EasyUtils\Laravel\EasyUtilsServiceProvider;
 use LogicException;
 use Monolog\Logger;
 
-final class EasyRequestResponseLoggingServiceProviderTest extends AbstractLumenTestCase
+final class EasyRequestResponseLoggingServiceProviderTest extends AbstractLaravelTestCase
 {
     public function testBootThrowsExceptionWhenEasyRequestIdServiceProviderIsNotRegistered(): void
     {
@@ -43,7 +43,7 @@ final class EasyRequestResponseLoggingServiceProviderTest extends AbstractLumenT
 
     public function testMiddlewareIsNotRegisteredByDefault(): void
     {
-        $app = $this->createLumenApplication();
+        $app = $this->createLaravelApplication();
         $app->register(EasyRequestResponseLoggingServiceProvider::class);
         $app->boot();
 
@@ -65,7 +65,7 @@ final class EasyRequestResponseLoggingServiceProviderTest extends AbstractLumenT
 
     public function testUsesEasyLoggingLoggerWhenEasyLoggingServiceProviderIsRegistered(): void
     {
-        $app = $this->createLumenApplication();
+        $app = $this->createLaravelApplication();
         $app->make('config')
             ->set('easy-request-response-logging.enabled', true);
         $app->register(EasyLoggingServiceProvider::class);

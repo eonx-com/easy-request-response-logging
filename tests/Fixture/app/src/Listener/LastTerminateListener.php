@@ -9,7 +9,7 @@ use Symfony\Component\HttpKernel\Event\TerminateEvent;
 #[AsEventListener(priority: -2048)]
 final class LastTerminateListener
 {
-    public const ATTRIBUTE = '_last_terminate_listener_called';
+    public const string ATTRIBUTE = '_last_terminate_listener_called';
 
     public function __invoke(TerminateEvent $event): void
     {
